@@ -1,0 +1,25 @@
+{
+    "network": {
+        "httpServers": [],
+        "httpSseServers": [],
+        "httpClients": [],
+        "websocketServers": [],
+        "websocketClients": [
+            {
+                "enable": true,
+                "name": "WsClient",
+                "url": "ws://host.docker.internal:12000/onebot/v11/ws/",
+                "reportSelfMessage": false,
+                "messagePostFormat": "array",
+                "token": "",
+                "debug": false,
+                "heartInterval": 30000,
+                "reconnectInterval": 1200
+            }
+        ],
+        "plugins": []
+    },
+    "musicSignUrl": "",
+    "enableLocalFile2Url": false,
+    "parseMultMsg": false
+}
