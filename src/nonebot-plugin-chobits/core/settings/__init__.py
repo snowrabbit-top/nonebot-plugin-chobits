@@ -217,11 +217,26 @@ class Settings:
 
         await init_system_info.send(f"{key} 已设置为 {value}")
 
+    def _format_settings(self, settings):
+        """
+        格式化系统配置信息
+        :param settings: 配置信息列表
+        :return: 格式化字符串
+        """
+        lines = []
+        for setting in settings:
+            key = setting.get("key", "")
+            value = setting.get("value", "")
+            description = setting.get("description", "")
+            lines.append(f"{key}: {value} ({description})")
+        return "\n".join(lines)
+
     def command(self):
         """
         初始化系统信息
         """
         init_system_info = on_command(cmd="初始化系统", permission=SUPERUSER)
+        view_system_info = on_command(cmd="查看系统配置", permission=SUPERUSER)
 
         # 定义命令处理函数装饰器
         @init_system_info.handle()
@@ -385,3 +400,35 @@ class Settings:
             await init_system_info.reject("""请输入需要修改的配置信息:
 例如: mysql-host 127.0.0.1
 输入"完成"结束修改""")
+
+        @view_system_info.handle()
+        async def handle_view_system_info():
+            """
+            查看系统配置
+            """
+            current_file_dir = Path(__file__).parent
+            parent_dir = current_file_dir.parent.parent
+            database_file = parent_dir / "database" / "database.db"
+            sqlite_db = SQLiteDatabase(database=database_file)
+
+            try:
+                conn = sqlite_db.create_connection()
+                cursor = conn.cursor()
+                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='system_info';")
+                table_exists = cursor.fetchone() is not None
+                conn.close()
+
+                if not table_exists:
+                    await view_system_info.finish("系统信息表不存在，请先执行初始化系统。")
+
+                settings = sqlite_db.select_column(
+                    table="system_info",
+                    order={"key": "ASC"}
+                )
+                if not settings:
+                    await view_system_info.finish("当前没有系统配置。")
+
+                formatted_settings = self._format_settings(settings)
+                await view_system_info.finish(f"当前系统配置如下:\n{formatted_settings}")
+            except Exception as e:
+                await view_system_info.finish(f"读取系统配置失败: {str(e)}")
