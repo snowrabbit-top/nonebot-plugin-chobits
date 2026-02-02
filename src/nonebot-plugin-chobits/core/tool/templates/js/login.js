@@ -1,5 +1,5 @@
 // 登录功能相关脚本
-async function login(loginUrl = '/login', redirectUrl = '/domain') {
+async function login(loginUrl = '/chobits/login', redirectUrl = '/chobits/page?name=home') {
     const account = document.getElementById('account');
     const password = document.getElementById('password');
 
