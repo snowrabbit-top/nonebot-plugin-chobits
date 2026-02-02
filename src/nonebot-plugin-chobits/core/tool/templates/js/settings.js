@@ -2,7 +2,7 @@
  * 系统设置页面逻辑
  * ----------------------------- */
 // 模拟设置数据（基于你提供的表结构）
-const mockSettings = [
+const fallbackSettings = [
     {
         id: 1,
         key: 'bot_name',
@@ -105,7 +105,8 @@ const mockSettings = [
     }
 ];
 
-let filteredSettings = [...mockSettings];
+let settingsData = [...fallbackSettings];
+let filteredSettings = [...settingsData];
 let currentPage = 1;
 const settingsPerPage = 5;
 
@@ -217,7 +218,7 @@ function filterSettings() {
     const searchValue = document.getElementById('searchInput').value.toLowerCase();
     const statusFilter = document.getElementById('statusFilter').value;
 
-    filteredSettings = mockSettings.filter(setting => {
+    filteredSettings = settingsData.filter(setting => {
         const matchesSearch = setting.id.toString().includes(searchValue) ||
             setting.key.toLowerCase().includes(searchValue) ||
             (setting.description && setting.description.toLowerCase().includes(searchValue)) ||
@@ -233,7 +234,7 @@ function filterSettings() {
 
 // 切换设置状态
 function toggleSettingStatus(settingId) {
-    const setting = mockSettings.find(s => s.id === settingId);
+    const setting = settingsData.find(s => s.id === settingId);
     if (setting) {
         setting.status = setting.status === 'normal' ? 'disable' : 'normal';
         setting.updated_time = new Date().toISOString().slice(0, 19).replace('T', ' ');
@@ -245,10 +246,10 @@ function toggleSettingStatus(settingId) {
 // 删除设置
 function deleteSetting(settingId) {
     if (confirm('确定要删除此设置吗？此操作不可恢复。')) {
-        const settingIndex = mockSettings.findIndex(s => s.id === settingId);
+        const settingIndex = settingsData.findIndex(s => s.id === settingId);
         if (settingIndex !== -1) {
-            const settingKey = mockSettings[settingIndex].key;
-            mockSettings.splice(settingIndex, 1);
+            const settingKey = settingsData[settingIndex].key;
+            settingsData.splice(settingIndex, 1);
             filterSettings(); // 重新应用筛选
             alert(`设置 "${settingKey}" 删除成功`);
         }
@@ -262,7 +263,7 @@ function addSetting() {
         const value = prompt('请输入设置值:') || '';
         const description = prompt('请输入设置描述（可选）:') || '';
         const newSetting = {
-            id: Math.max(...mockSettings.map(s => s.id)) + 1,
+            id: settingsData.length ? Math.max(...settingsData.map(s => s.id)) + 1 : 1,
             key: key.trim(),
             value: value.trim(),
             description: description.trim(),
@@ -271,7 +272,7 @@ function addSetting() {
             updated_time: new Date().toISOString().slice(0, 19).replace('T', ' '),
             deleted_time: null
         };
-        mockSettings.push(newSetting);
+        settingsData.push(newSetting);
         filterSettings();
         alert('设置添加成功');
     } else if (key !== null) {
@@ -281,7 +282,7 @@ function addSetting() {
 
 // 编辑设置
 function editSetting(settingId) {
-    const setting = mockSettings.find(s => s.id === settingId);
+    const setting = settingsData.find(s => s.id === settingId);
     if (setting) {
         const newKey = prompt('编辑设置键名:', setting.key);
         if (newKey === null) return; // 用户取消
@@ -300,6 +301,25 @@ function editSetting(settingId) {
     }
 }
 
+async function loadSettings(apiUrl = '/chobits/settings') {
+    try {
+        const res = await fetch(apiUrl);
+        const data = await res.json();
+        if (data.status === 'success' && data.data && Array.isArray(data.data.items)) {
+            settingsData = [...data.data.items];
+        } else {
+            settingsData = [...fallbackSettings];
+        }
+    } catch (err) {
+        console.error('设置数据加载失败:', err);
+        settingsData = [...fallbackSettings];
+    }
+    filteredSettings = [...settingsData];
+    currentPage = 1;
+    renderSettingsTable();
+    renderPagination();
+}
+
 /* -----------------------------
  * 初始化
  * ----------------------------- */
@@ -308,6 +328,5 @@ document.addEventListener('DOMContentLoaded', () => {
     setupSidebarNavigation();
 
     // 初始化设置列表
-    renderSettingsTable();
-    renderPagination();
+    loadSettings();
 });

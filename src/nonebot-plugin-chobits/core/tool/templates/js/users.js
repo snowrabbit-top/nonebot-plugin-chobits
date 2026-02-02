@@ -2,7 +2,7 @@
  * 用户管理页面逻辑
  * ----------------------------- */
 // 模拟用户数据（基于你提供的表结构）
-const mockUsers = [
+const fallbackUsers = [
     {
         id: 1,
         qq: '123456789',
@@ -93,7 +93,8 @@ const mockUsers = [
     }
 ];
 
-let filteredUsers = [...mockUsers];
+let usersData = [...fallbackUsers];
+let filteredUsers = [...usersData];
 let currentPage = 1;
 const usersPerPage = 5;
 
@@ -217,7 +218,7 @@ function filterUsers() {
     const searchValue = document.getElementById('searchInput').value.toLowerCase();
     const statusFilter = document.getElementById('statusFilter').value;
 
-    filteredUsers = mockUsers.filter(user => {
+    filteredUsers = usersData.filter(user => {
         const matchesSearch = user.id.toString().includes(searchValue) ||
             user.qq.toLowerCase().includes(searchValue);
         const matchesStatus = statusFilter === '' || user.status === statusFilter;
@@ -231,7 +232,7 @@ function filterUsers() {
 
 // 切换用户状态
 function toggleUserStatus(userId) {
-    const user = mockUsers.find(u => u.id === userId);
+    const user = usersData.find(u => u.id === userId);
     if (user) {
         user.status = user.status === 'normal' ? 'ban' : 'normal';
         user.updated_time = new Date().toISOString().slice(0, 19).replace('T', ' ');
@@ -243,9 +244,9 @@ function toggleUserStatus(userId) {
 // 删除用户
 function deleteUser(userId) {
     if (confirm('确定要删除此用户吗？此操作不可恢复。')) {
-        const userIndex = mockUsers.findIndex(u => u.id === userId);
+        const userIndex = usersData.findIndex(u => u.id === userId);
         if (userIndex !== -1) {
-            mockUsers.splice(userIndex, 1);
+            usersData.splice(userIndex, 1);
             filterUsers(); // 重新应用筛选
             alert('用户删除成功');
         }
@@ -257,7 +258,7 @@ function addUser() {
     const qq = prompt('请输入QQ号:');
     if (qq && /^\d+$/.test(qq)) {
         const newUser = {
-            id: Math.max(...mockUsers.map(u => u.id)) + 1,
+            id: usersData.length ? Math.max(...usersData.map(u => u.id)) + 1 : 1,
             qq: qq,
             avatar: null,
             register_time: new Date().toISOString().slice(0, 19).replace('T', ' '),
@@ -267,12 +268,31 @@ function addUser() {
             updated_time: new Date().toISOString().slice(0, 19).replace('T', ' '),
             deleted_time: null
         };
-        mockUsers.push(newUser);
+        usersData.push(newUser);
         filterUsers();
         alert('用户添加成功');
     } else if (qq) {
         alert('QQ号必须为数字');
     }
+}
+
+async function loadUsers(apiUrl = '/chobits/users') {
+    try {
+        const res = await fetch(apiUrl);
+        const data = await res.json();
+        if (data.status === 'success' && data.data && Array.isArray(data.data.items)) {
+            usersData = [...data.data.items];
+        } else {
+            usersData = [...fallbackUsers];
+        }
+    } catch (err) {
+        console.error('用户数据加载失败:', err);
+        usersData = [...fallbackUsers];
+    }
+    filteredUsers = [...usersData];
+    currentPage = 1;
+    renderUsersTable();
+    renderPagination();
 }
 
 /* -----------------------------
@@ -283,6 +303,5 @@ document.addEventListener('DOMContentLoaded', () => {
     setupSidebarNavigation();
 
     // 初始化用户列表
-    renderUsersTable();
-    renderPagination();
+    loadUsers();
 });
