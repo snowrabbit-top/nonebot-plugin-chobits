@@ -268,25 +268,33 @@ class Settings:
                     # 表不存在，创建表
                     create_table_sql = """
                     -- 系统信息表
-                    CREATE TABLE IF NOT EXISTS `system_info`
+                    CREATE TABLE IF NOT EXISTS system_info
                     (
-                        `id`           INTEGER PRIMARY KEY AUTOINCREMENT,
-                        `key`          TEXT    NOT NULL DEFAULT ''     COMMENT '信息键名',
-                        `value`        TEXT    NULL     DEFAULT NULL   COMMENT '信息值',
-                        `description`  TEXT    NULL     DEFAULT NULL   COMMENT '描述',
-                        `status`       TEXT    NOT NULL DEFAULT 'normal' COMMENT '状态 (normal, disable)',
-                        `created_time` TEXT    NOT NULL DEFAULT (datetime('now', 'localtime')) COMMENT '创建时间',
-                        `updated_time` TEXT    NOT NULL DEFAULT (datetime('now', 'localtime')) COMMENT '更新时间',
-                        `deleted_time` TEXT    NULL     DEFAULT NULL   COMMENT '删除时间',
-                        UNIQUE(`key`)
+                        id           INTEGER PRIMARY KEY AUTOINCREMENT,
+                        key          TEXT    NOT NULL DEFAULT '',
+                        value        TEXT    NULL     DEFAULT NULL,
+                        description  TEXT    NULL     DEFAULT NULL,
+                        status       TEXT    NOT NULL DEFAULT 'normal',
+                        created_time TEXT    NOT NULL DEFAULT (datetime('now', 'localtime')),
+                        updated_time TEXT    NOT NULL DEFAULT (datetime('now', 'localtime')),
+                        deleted_time TEXT    NULL     DEFAULT NULL,
+                        UNIQUE(key)
                     );
                     -- 创建索引
-                    CREATE INDEX IF NOT EXISTS `system_info_key_index` ON `system_info`(`key`);
-                    CREATE INDEX IF NOT EXISTS `system_info_status_index` ON `system_info`(`status`);
-                    CREATE INDEX IF NOT EXISTS `system_info_created_time_index` ON `system_info`(`created_time`);
-                    CREATE INDEX IF NOT EXISTS `system_info_updated_time_index` ON `system_info`(`updated_time`);
+                    CREATE INDEX IF NOT EXISTS system_info_key_index ON system_info(key);
+                    CREATE INDEX IF NOT EXISTS system_info_status_index ON system_info(status);
+                    CREATE INDEX IF NOT EXISTS system_info_created_time_index ON system_info(created_time);
+                    CREATE INDEX IF NOT EXISTS system_info_updated_time_index ON system_info(updated_time);
                     """
-                    sqlite_db.create_table(create_table_sql)
+                    # 根据分号拆分SQL语句并循环执行
+                    sql_statements = [stmt.strip() for stmt in create_table_sql.split(';') if stmt.strip()]
+
+                    for sql_stmt in sql_statements:
+                        if sql_stmt:  # 确保不是空语句
+                            print(f"正在执行SQL语句：{sql_stmt}")
+                            sqlite_db.create_table(sql_stmt)
+
+                    print("所有SQL语句执行完成")
                     await init_system_info.send("系统信息表创建成功")
                 else:
                     # 表已存在
@@ -329,8 +337,19 @@ class Settings:
                         f"系统信息初始化完成: 新增 {inserted} 条，覆盖 {updated} 条，保留 {skipped} 条。"
                     )
                     await init_system_info.send(
-                        "配置信息包含: MySql(mysql-host/mysql-port/mysql-user/mysql-password/mysql-database) "
-                        "和 Redis(redis-host/redis-port/redis-password/redis-database)，请检查并修改为真实配置。"
+                        "当前系统配置:\r\n\r\n"
+                        "=== MySQL 配置 ===\r\n"
+                        "mysql-host: mysql 主机地址\r\n"
+                        "mysql-port: mysql 端口号\r\n"
+                        "mysql-user: mysql 用户名\r\n"
+                        "mysql-password: mysql 密码\r\n"
+                        "mysql-database: mysql 数据库名称\r\n\r\n"
+                        "=== Redis 配置 ===\r\n"
+                        "redis-host: redis 主机地址\r\n"
+                        "redis-port: redis 端口号\r\n"
+                        "redis-password: redis 密码（可为空）\r\n"
+                        "redis-database: redis 数据库编号\r\n\r\n"
+                        "请检查并修改配置信息，将用户名和密码改为真实配置"
                     )
 
             # 处理异常
@@ -363,12 +382,34 @@ class Settings:
                 f"系统信息初始化完成: 新增 {inserted} 条，覆盖 {updated} 条，保留 {skipped} 条。"
             )
             await init_system_info.send(
-                "配置信息包含: MySql(mysql-host/mysql-port/mysql-user/mysql-password/mysql-database) "
-                "和 Redis(redis-host/redis-port/redis-password/redis-database)，请检查并修改为真实配置。"
+                "当前系统配置:\r\n\r\n"
+                "=== MySQL 配置 ===\r\n"
+                "mysql-host: mysql 主机地址\r\n"
+                "mysql-port: mysql 端口号\r\n"
+                "mysql-user: mysql 用户名\r\n"
+                "mysql-password: mysql 密码\r\n"
+                "mysql-database: mysql 数据库名称\r\n\r\n"
+                "=== Redis 配置 ===\r\n"
+                "redis-host: redis 主机地址\r\n"
+                "redis-port: redis 端口号\r\n"
+                "redis-password: redis 密码（可为空）\r\n"
+                "redis-database: redis 数据库编号\r\n\r\n"
+                "请检查并修改配置信息，将用户名和密码改为真实配置"
             )
 
         @init_system_info.got("info", prompt="""请输入需要修改的配置信息:
-例如: mysql-host 127.0.0.1
+格式: 配置项 新值
+例如: mysql-host 192.168.1.100
+支持的配置项:
+mysql-host
+mysql-port
+mysql-user
+mysql-password
+mysql-database
+redis-host
+redis-port
+redis-password
+redis-database
 输入"完成"结束修改""")
         async def got_location(info: str = ArgPlainText(), state: T_State = None):
             """
@@ -398,7 +439,18 @@ class Settings:
 
             # 继续提示用户输入更多信息，直到用户输入"完成"
             await init_system_info.reject("""请输入需要修改的配置信息:
-例如: mysql-host 127.0.0.1
+格式: 配置项 新值
+例如: mysql-host 192.168.1.100
+支持的配置项:
+mysql-host
+mysql-port
+mysql-user
+mysql-password
+mysql-database
+redis-host
+redis-port
+redis-password
+redis-database
 输入"完成"结束修改""")
 
         @view_system_info.handle()
@@ -411,24 +463,21 @@ class Settings:
             database_file = parent_dir / "database" / "database.db"
             sqlite_db = SQLiteDatabase(database=database_file)
 
-            try:
-                conn = sqlite_db.create_connection()
-                cursor = conn.cursor()
-                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='system_info';")
-                table_exists = cursor.fetchone() is not None
-                conn.close()
+            conn = sqlite_db.create_connection()
+            cursor = conn.cursor()
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='system_info';")
+            table_exists = cursor.fetchone() is not None
+            conn.close()
 
-                if not table_exists:
-                    await view_system_info.finish("系统信息表不存在，请先执行初始化系统。")
+            if not table_exists:
+                await view_system_info.finish("系统信息表不存在，请先执行初始化系统。")
 
-                settings = sqlite_db.select_column(
-                    table="system_info",
-                    order={"key": "ASC"}
-                )
-                if not settings:
-                    await view_system_info.finish("当前没有系统配置。")
+            settings = sqlite_db.select_column(
+                table="system_info",
+                order={"key": "ASC"}
+            )
+            if not settings:
+                await view_system_info.finish("当前没有系统配置。")
 
-                formatted_settings = self._format_settings(settings)
-                await view_system_info.finish(f"当前系统配置如下:\n{formatted_settings}")
-            except Exception as e:
-                await view_system_info.finish(f"读取系统配置失败: {str(e)}")
+            formatted_settings = self._format_settings(settings)
+            await view_system_info.finish(f"当前系统配置如下:\n{formatted_settings}")

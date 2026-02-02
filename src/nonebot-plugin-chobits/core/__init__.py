@@ -12,6 +12,7 @@ from .set_qq_profile import SetQQProfile
 from .fetch_custom_face import FetchCustomFace
 from .music import Music
 from .random_image import RandomImage
+from .tool import Tool
 
 from .ha import HA
 
@@ -26,6 +27,7 @@ __all__ = [
     "FetchCustomFace",
     "Music",
     "RandomImage",
+    "Tool",
 
     "HA",
 ]

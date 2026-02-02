@@ -11,9 +11,10 @@ from .core import SetGroupPortrait
 from .core import SetQQProfile
 from .core import FetchCustomFace
 from .core import Music
-# from .core import RandomImage
+from .core import RandomImage
+from .core import Tool
 
-# from .core import HA
+from .core import HA
 
 __plugin_meta__ = PluginMetadata(
     name="nonebot-plugin-chobits",
@@ -44,6 +45,9 @@ FetchCustomFace().command()
 Music().command()
 # 随机图片
 # RandomImage().command()
+# 工具
+Tool().server()
+Tool().command()
 
 # 哈
 # HA().command()

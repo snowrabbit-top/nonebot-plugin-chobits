@@ -4,23 +4,26 @@
 import os
 import random
 from nonebot import on_command
-from nonebot.params import CommandArg
-from nonebot.permission import SUPERUSER
-from nonebot.internal.params import ArgPlainText
-from nonebot.adapters.onebot.v11 import Message, Bot, Event, MessageSegment
+from nonebot.adapters.onebot.v11 import MessageSegment
 
 from ...unit import ImageProcessor
 
 
 class RandomImage:
-    image_path = '/media/debian/warehouse/Image/anime'
-    # image_list = ImageProcessor().list_files_in_directory(image_path)
-    napcat_path = '/app/napcat/Image/anime'
+    image_path = ''
+    image_list = ''
+    napcat_path = ''
+
+    def __init__(self):
+        self.image_path = '/media/debian/warehouse/Image/anime'
+        self.napcat_path = '/app/napcat/Image/anime'
+        self.image_list = ImageProcessor().list_files_in_directory(self.image_path)
 
     def command(self):
         """
         命令列表
         """
+        self.__init__()
         random_image = on_command("随机图片", aliases={"sjtp"})
 
         @random_image.handle()
