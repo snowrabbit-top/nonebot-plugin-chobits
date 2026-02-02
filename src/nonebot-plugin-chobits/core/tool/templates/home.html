@@ -43,31 +43,31 @@
                             <div class="stat-card">
                                 <div class="stat-status status-online"></div>
                                 <div class="stat-label">服务器状态</div>
-                                <div class="stat-value">在线</div>
+                                <div class="stat-value" id="serverStatusValue">在线</div>
                             </div>
                             <div class="stat-card">
                                 <div class="stat-label">CPU使用率</div>
-                                <div class="stat-value">23.5%</div>
+                                <div class="stat-value" id="cpuUsageValue">23.5%</div>
                                 <div class="progress-bar">
-                                    <div class="progress-fill" style="width: 23.5%"></div>
+                                    <div class="progress-fill" id="cpuUsageBar" style="width: 23.5%"></div>
                                 </div>
-                                <div class="progress-text">正常</div>
+                                <div class="progress-text" id="cpuUsageText">正常</div>
                             </div>
                             <div class="stat-card">
                                 <div class="stat-label">内存使用率</div>
-                                <div class="stat-value">45.2%</div>
+                                <div class="stat-value" id="memoryUsageValue">45.2%</div>
                                 <div class="progress-bar">
-                                    <div class="progress-fill" style="width: 45.2%"></div>
+                                    <div class="progress-fill" id="memoryUsageBar" style="width: 45.2%"></div>
                                 </div>
-                                <div class="progress-text">8.2GB/18GB</div>
+                                <div class="progress-text" id="memoryUsageText">8.2GB/18GB</div>
                             </div>
                             <div class="stat-card">
                                 <div class="stat-label">磁盘使用率</div>
-                                <div class="stat-value">67.8%</div>
+                                <div class="stat-value" id="diskUsageValue">67.8%</div>
                                 <div class="progress-bar">
-                                    <div class="progress-fill" style="width: 67.8%"></div>
+                                    <div class="progress-fill" id="diskUsageBar" style="width: 67.8%"></div>
                                 </div>
-                                <div class="progress-text">135GB/200GB</div>
+                                <div class="progress-text" id="diskUsageText">135GB/200GB</div>
                             </div>
                         </div>
                     </div>
@@ -80,27 +80,27 @@
                         </div>
                         <div class="metrics-grid">
                             <div class="metric-item">
-                                <div class="metric-value">1,247</div>
+                                <div class="metric-value" id="metricUsers">1,247</div>
                                 <div class="metric-label">总用户数</div>
                             </div>
                             <div class="metric-item">
-                                <div class="metric-value">8</div>
+                                <div class="metric-value" id="metricRoles">8</div>
                                 <div class="metric-label">角色数量</div>
                             </div>
                             <div class="metric-item">
-                                <div class="metric-value">156</div>
+                                <div class="metric-value" id="metricCommands">156</div>
                                 <div class="metric-label">命令总数</div>
                             </div>
                             <div class="metric-item">
-                                <div class="metric-value">24</div>
+                                <div class="metric-value" id="metricActive">24</div>
                                 <div class="metric-label">今日活跃</div>
                             </div>
                             <div class="metric-item">
-                                <div class="metric-value">12</div>
+                                <div class="metric-value" id="metricAlerts">12</div>
                                 <div class="metric-label">待处理告警</div>
                             </div>
                             <div class="metric-item">
-                                <div class="metric-value">3</div>
+                                <div class="metric-value" id="metricTasks">3</div>
                                 <div class="metric-label">待办任务</div>
                             </div>
                         </div>
@@ -112,7 +112,7 @@
                             <h3>最近活动</h3>
                             <a href="#">查看全部</a>
                         </div>
-                        <ul class="activity-list">
+                        <ul class="activity-list" id="activityList">
                             <li class="activity-item">
                                 <div class="activity-icon">👤</div>
                                 <div class="activity-content">

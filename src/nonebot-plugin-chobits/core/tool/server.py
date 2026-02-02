@@ -43,6 +43,7 @@ class ToolServerMixin:
             "chobits_http_command": self.http_command,
             "chobits_http_page": self.http_page,
             "chobits_http_static": self.http_static,
+            "chobits_http_home": self.http_home,
             "chobits_http_login": self.http_login,
         }
         for method, path, name in self.HTTP_ROUTES:
