@@ -6,6 +6,31 @@ const state = {
     netInSeries: Array.from({length: 60}, () => 5 + Math.random() * 10),
     netOutSeries: Array.from({length: 60}, () => 3 + Math.random() * 8)
 };
+let monitorSnapshot = null;
+
+function normalizeSeries(series, fallback) {
+    if (!Array.isArray(series) || series.length === 0) {
+        return fallback.slice();
+    }
+    if (series.length >= 60) {
+        return series.slice(series.length - 60);
+    }
+    const padded = series.slice();
+    while (padded.length < 60) {
+        padded.unshift(padded[0]);
+    }
+    return padded;
+}
+
+function applyMonitorSnapshot(snapshot) {
+    if (!snapshot || !snapshot.series) {
+        return;
+    }
+    const series = snapshot.series;
+    state.cpuSeries = normalizeSeries(series.cpu, state.cpuSeries);
+    state.netInSeries = normalizeSeries(series.net_in, state.netInSeries);
+    state.netOutSeries = normalizeSeries(series.net_out, state.netOutSeries);
+}
 
 function clamp(n, min, max) {
     return Math.max(min, Math.min(max, n));
@@ -129,48 +154,66 @@ function renderCharts() {
 }
 
 function renderTop() {
-    const cpu = state.cpuSeries[state.cpuSeries.length - 1];
-    const mem = clamp(35 + (Math.random() * 35), 10, 95);
-    const disk = clamp(50 + (Math.random() * 40), 20, 98);
-    const cores = 8;
-    const memTotalGB = 32;
-    const memUsedGB = (memTotalGB * mem / 100);
-    const diskTotalGB = 200;
-    const diskUsedGB = (diskTotalGB * disk / 100);
-    document.getElementById('lastUpdated').textContent = nowStr();
+    const snapshot = monitorSnapshot || {};
+    const cpu = typeof snapshot.cpu?.percent === 'number'
+        ? snapshot.cpu.percent
+        : state.cpuSeries[state.cpuSeries.length - 1];
+    const memPercent = typeof snapshot.memory?.percent === 'number'
+        ? snapshot.memory.percent
+        : clamp(35 + (Math.random() * 35), 10, 95);
+    const diskPercent = typeof snapshot.disk?.percent === 'number'
+        ? snapshot.disk.percent
+        : clamp(50 + (Math.random() * 40), 20, 98);
+    const cores = typeof snapshot.cpu?.cores === 'number' ? snapshot.cpu.cores : 8;
+    const memTotalGB = typeof snapshot.memory?.total_gb === 'number' ? snapshot.memory.total_gb : 32;
+    const memUsedGB = typeof snapshot.memory?.used_gb === 'number'
+        ? snapshot.memory.used_gb
+        : (memTotalGB * memPercent / 100);
+    const diskTotalGB = typeof snapshot.disk?.total_gb === 'number' ? snapshot.disk.total_gb : 200;
+    const diskUsedGB = typeof snapshot.disk?.used_gb === 'number'
+        ? snapshot.disk.used_gb
+        : (diskTotalGB * diskPercent / 100);
+    document.getElementById('lastUpdated').textContent = snapshot.updated_at || nowStr();
     document.getElementById('cpuValue').textContent = fmtPct(cpu);
     document.getElementById('cpuBar').style.width = `${cpu.toFixed(1)}%`;
     document.getElementById('cpuAvg').textContent = fmtPct((state.cpuSeries.slice(-10).reduce((a, b) => a + b, 0) / 10));
     document.getElementById('cpuCores').textContent = `${cores}`;
-    document.getElementById('memValue').textContent = fmtPct(mem);
-    document.getElementById('memBar').style.width = `${mem.toFixed(1)}%`;
+    document.getElementById('memValue').textContent = fmtPct(memPercent);
+    document.getElementById('memBar').style.width = `${memPercent.toFixed(1)}%`;
     document.getElementById('memUsed').textContent = `${memUsedGB.toFixed(1)} GB`;
     document.getElementById('memTotal').textContent = `${memTotalGB} GB`;
-    document.getElementById('diskValue').textContent = fmtPct(disk);
-    document.getElementById('diskBar').style.width = `${disk.toFixed(1)}%`;
+    document.getElementById('diskValue').textContent = fmtPct(diskPercent);
+    document.getElementById('diskBar').style.width = `${diskPercent.toFixed(1)}%`;
     document.getElementById('diskUsed').textContent = `${diskUsedGB.toFixed(0)} GB`;
     document.getElementById('diskTotal').textContent = `${diskTotalGB} GB`;
     setBadge(document.getElementById('cpuBadge'), cpu);
-    setBadge(document.getElementById('memBadge'), mem);
-    setBadge(document.getElementById('diskBadge'), disk);
-    updateOverallBadge(cpu, mem, disk);
+    setBadge(document.getElementById('memBadge'), memPercent);
+    setBadge(document.getElementById('diskBadge'), diskPercent);
+    updateOverallBadge(cpu, memPercent, diskPercent);
     const load = (cpu / 100 * (cores / 2)).toFixed(2);
     document.getElementById('loadLabel').textContent = `load: ${load}`;
-    const inNow = state.netInSeries[state.netInSeries.length - 1];
-    const outNow = state.netOutSeries[state.netOutSeries.length - 1];
+    const inNow = typeof snapshot.network?.in_now === 'number'
+        ? snapshot.network.in_now
+        : state.netInSeries[state.netInSeries.length - 1];
+    const outNow = typeof snapshot.network?.out_now === 'number'
+        ? snapshot.network.out_now
+        : state.netOutSeries[state.netOutSeries.length - 1];
     document.getElementById('netLabel').textContent = `in: ${inNow.toFixed(1)} MB/s · out: ${outNow.toFixed(1)} MB/s`;
 }
 
 function renderTables() {
-    const procs = [
+    const fallbackProcs = [
         {pid: 1842, name: "chobits-api", cpu: clamp(6 + Math.random() * 18, 0.3, 45), mem: clamp(3 + Math.random() * 10, 0.2, 30), user: "root"},
         {pid: 2211, name: "postgres", cpu: clamp(2 + Math.random() * 10, 0.3, 35), mem: clamp(6 + Math.random() * 15, 0.2, 45), user: "postgres"},
         {pid: 987, name: "redis-server", cpu: clamp(1 + Math.random() * 6, 0.2, 18), mem: clamp(1 + Math.random() * 6, 0.2, 12), user: "redis"},
         {pid: 3021, name: "nginx", cpu: clamp(0.5 + Math.random() * 3.5, 0.1, 10), mem: clamp(0.8 + Math.random() * 2.2, 0.1, 6), user: "www-data"},
         {pid: 4112, name: "node-exporter", cpu: clamp(0.2 + Math.random() * 1.2, 0.1, 6), mem: clamp(0.2 + Math.random() * 0.8, 0.1, 4), user: "nobody"}
-    ].sort((a, b) => b.cpu - a.cpu);
+    ];
+    const procs = (monitorSnapshot && Array.isArray(monitorSnapshot.processes))
+        ? monitorSnapshot.processes
+        : fallbackProcs;
     const procTbody = document.getElementById('procTbody');
-    procTbody.innerHTML = procs.map(p => `
+    procTbody.innerHTML = procs.sort((a, b) => b.cpu - a.cpu).map(p => `
                 <tr>
                     <td>${p.pid}</td>
                     <td>${p.name}</td>
@@ -179,13 +222,16 @@ function renderTables() {
                     <td class="muted">${p.user}</td>
                 </tr>
             `).join('');
-    const svc = [
+    const fallbackSvc = [
         {name: "chobits-api", ok: true, latency: 18 + Math.random() * 30, note: "HTTP 200 /health"},
         {name: "postgres", ok: true, latency: 2 + Math.random() * 6, note: "连接正常"},
         {name: "redis", ok: true, latency: 1 + Math.random() * 4, note: "PONG"},
         {name: "prometheus", ok: Math.random() > 0.08, latency: 25 + Math.random() * 60, note: "抓取正常"},
         {name: "grafana", ok: Math.random() > 0.10, latency: 30 + Math.random() * 80, note: "登录可用"}
     ];
+    const svc = (monitorSnapshot && Array.isArray(monitorSnapshot.services))
+        ? monitorSnapshot.services
+        : fallbackSvc;
     const svcTbody = document.getElementById('svcTbody');
     svcTbody.innerHTML = svc.map(s => {
         const status = s.ok ? `<span class="badge ok">RUNNING</span>` : `<span class="badge err">DOWN</span>`;
@@ -234,14 +280,29 @@ function tick() {
     renderAlerts();
 }
 
+async function loadMonitorData(apiUrl = '/chobits/monitor') {
+    try {
+        const res = await fetch(apiUrl);
+        const data = await res.json();
+        if (data.status === 'success' && data.data) {
+            monitorSnapshot = data.data;
+            applyMonitorSnapshot(monitorSnapshot);
+        }
+    } catch (err) {
+        console.error('监控数据加载失败:', err);
+    }
+}
+
 /* -----------------------------
  * 初始化
  * ----------------------------- */
 document.addEventListener('DOMContentLoaded', () => {
     initTechBackground('particles', 28);
     setupSidebarNavigation();
-    // 首次渲染
-    tick();
-    // 定时刷新（每3秒）
-    setInterval(tick, 3000);
+    // 首次加载数据并渲染
+    loadMonitorData().finally(() => {
+        tick();
+        // 定时刷新（每3秒）
+        setInterval(tick, 3000);
+    });
 });

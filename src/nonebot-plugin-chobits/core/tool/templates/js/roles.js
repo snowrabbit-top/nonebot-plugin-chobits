@@ -2,7 +2,7 @@
  * 角色管理页面逻辑
  * ----------------------------- */
 // 模拟角色数据
-const mockRoles = [
+const fallbackRoles = [
     {
         id: 1,
         name: '超级管理员',
@@ -77,7 +77,8 @@ const mockRoles = [
     }
 ];
 
-let filteredRoles = [...mockRoles];
+let rolesData = [...fallbackRoles];
+let filteredRoles = [...rolesData];
 let currentPage = 1;
 const rolesPerPage = 5;
 
@@ -188,7 +189,7 @@ function filterRoles() {
     const searchValue = document.getElementById('searchInput').value.toLowerCase();
     const statusFilter = document.getElementById('statusFilter').value;
 
-    filteredRoles = mockRoles.filter(role => {
+    filteredRoles = rolesData.filter(role => {
         const matchesSearch = role.id.toString().includes(searchValue) ||
             role.name.toLowerCase().includes(searchValue) ||
             (role.permissions && role.permissions.toLowerCase().includes(searchValue));
@@ -203,7 +204,7 @@ function filterRoles() {
 
 // 切换角色状态
 function toggleRoleStatus(roleId) {
-    const role = mockRoles.find(r => r.id === roleId);
+    const role = rolesData.find(r => r.id === roleId);
     if (role) {
         role.status = role.status === 'normal' ? 'disable' : 'normal';
         role.updated_time = new Date().toISOString().slice(0, 19).replace('T', ' ');
@@ -215,10 +216,10 @@ function toggleRoleStatus(roleId) {
 // 删除角色
 function deleteRole(roleId) {
     if (confirm('确定要删除此角色吗？此操作不可恢复。')) {
-        const roleIndex = mockRoles.findIndex(r => r.id === roleId);
+        const roleIndex = rolesData.findIndex(r => r.id === roleId);
         if (roleIndex !== -1) {
-            const roleName = mockRoles[roleIndex].name;
-            mockRoles.splice(roleIndex, 1);
+            const roleName = rolesData[roleIndex].name;
+            rolesData.splice(roleIndex, 1);
             filterRoles(); // 重新应用筛选
             alert(`角色 "${roleName}" 删除成功`);
         }
@@ -231,7 +232,7 @@ function addRole() {
     if (name && name.trim()) {
         const permissions = prompt('请输入权限列表（用逗号分隔）:') || '';
         const newRole = {
-            id: Math.max(...mockRoles.map(r => r.id)) + 1,
+            id: rolesData.length ? Math.max(...rolesData.map(r => r.id)) + 1 : 1,
             name: name.trim(),
             permissions: permissions.trim(),
             status: 'normal',
@@ -239,7 +240,7 @@ function addRole() {
             updated_time: new Date().toISOString().slice(0, 19).replace('T', ' '),
             deleted_time: null
         };
-        mockRoles.push(newRole);
+        rolesData.push(newRole);
         filterRoles();
         alert('角色添加成功');
     } else if (name !== null) {
@@ -249,7 +250,7 @@ function addRole() {
 
 // 编辑角色
 function editRole(roleId) {
-    const role = mockRoles.find(r => r.id === roleId);
+    const role = rolesData.find(r => r.id === roleId);
     if (role) {
         const newName = prompt('编辑角色名称:', role.name);
         if (newName === null) return; // 用户取消
@@ -266,6 +267,25 @@ function editRole(roleId) {
     }
 }
 
+async function loadRoles(apiUrl = '/chobits/roles') {
+    try {
+        const res = await fetch(apiUrl);
+        const data = await res.json();
+        if (data.status === 'success' && data.data && Array.isArray(data.data.items)) {
+            rolesData = [...data.data.items];
+        } else {
+            rolesData = [...fallbackRoles];
+        }
+    } catch (err) {
+        console.error('角色数据加载失败:', err);
+        rolesData = [...fallbackRoles];
+    }
+    filteredRoles = [...rolesData];
+    currentPage = 1;
+    renderRolesTable();
+    renderPagination();
+}
+
 /* -----------------------------
  * 初始化
  * ----------------------------- */
@@ -274,6 +294,5 @@ document.addEventListener('DOMContentLoaded', () => {
     setupSidebarNavigation();
 
     // 初始化角色列表
-    renderRolesTable();
-    renderPagination();
+    loadRoles();
 });

@@ -2,7 +2,7 @@
  * 命令管理页面逻辑
  * ----------------------------- */
 // 模拟命令数据（基于你提供的表结构）
-const mockFunctions = [
+const fallbackFunctions = [
     {
         id: 1,
         name: 'ping',
@@ -95,7 +95,8 @@ const mockFunctions = [
     }
 ];
 
-let filteredFunctions = [...mockFunctions];
+let functionsData = [...fallbackFunctions];
+let filteredFunctions = [...functionsData];
 let currentPage = 1;
 const functionsPerPage = 5;
 
@@ -206,7 +207,7 @@ function filterFunctions() {
     const searchValue = document.getElementById('searchInput').value.toLowerCase();
     const statusFilter = document.getElementById('statusFilter').value;
 
-    filteredFunctions = mockFunctions.filter(func => {
+    filteredFunctions = functionsData.filter(func => {
         const matchesSearch = func.id.toString().includes(searchValue) ||
             func.name.toLowerCase().includes(searchValue) ||
             (func.description && func.description.toLowerCase().includes(searchValue));
@@ -221,7 +222,7 @@ function filterFunctions() {
 
 // 切换命令状态
 function toggleFunctionStatus(functionId) {
-    const func = mockFunctions.find(f => f.id === functionId);
+    const func = functionsData.find(f => f.id === functionId);
     if (func) {
         func.status = func.status === 'normal' ? 'disable' : 'normal';
         func.updated_time = new Date().toISOString().slice(0, 19).replace('T', ' ');
@@ -233,10 +234,10 @@ function toggleFunctionStatus(functionId) {
 // 删除命令
 function deleteFunction(functionId) {
     if (confirm('确定要删除此命令吗？此操作不可恢复。')) {
-        const funcIndex = mockFunctions.findIndex(f => f.id === functionId);
+        const funcIndex = functionsData.findIndex(f => f.id === functionId);
         if (funcIndex !== -1) {
-            const funcName = mockFunctions[funcIndex].name;
-            mockFunctions.splice(funcIndex, 1);
+            const funcName = functionsData[funcIndex].name;
+            functionsData.splice(funcIndex, 1);
             filterFunctions(); // 重新应用筛选
             alert(`命令 "${funcName}" 删除成功`);
         }
@@ -249,7 +250,7 @@ function addFunction() {
     if (name && name.trim()) {
         const description = prompt('请输入命令描述（可选）:') || '';
         const newFunction = {
-            id: Math.max(...mockFunctions.map(f => f.id)) + 1,
+            id: functionsData.length ? Math.max(...functionsData.map(f => f.id)) + 1 : 1,
             name: name.trim(),
             description: description.trim(),
             status: 'normal',
@@ -257,7 +258,7 @@ function addFunction() {
             updated_time: new Date().toISOString().slice(0, 19).replace('T', ' '),
             deleted_time: null
         };
-        mockFunctions.push(newFunction);
+        functionsData.push(newFunction);
         filterFunctions();
         alert('命令添加成功');
     } else if (name !== null) {
@@ -267,7 +268,7 @@ function addFunction() {
 
 // 编辑命令
 function editFunction(functionId) {
-    const func = mockFunctions.find(f => f.id === functionId);
+    const func = functionsData.find(f => f.id === functionId);
     if (func) {
         const newName = prompt('编辑命令名称:', func.name);
         if (newName === null) return; // 用户取消
@@ -284,6 +285,25 @@ function editFunction(functionId) {
     }
 }
 
+async function loadFunctions(apiUrl = '/chobits/functions') {
+    try {
+        const res = await fetch(apiUrl);
+        const data = await res.json();
+        if (data.status === 'success' && data.data && Array.isArray(data.data.items)) {
+            functionsData = [...data.data.items];
+        } else {
+            functionsData = [...fallbackFunctions];
+        }
+    } catch (err) {
+        console.error('命令数据加载失败:', err);
+        functionsData = [...fallbackFunctions];
+    }
+    filteredFunctions = [...functionsData];
+    currentPage = 1;
+    renderFunctionsTable();
+    renderPagination();
+}
+
 /* -----------------------------
  * 初始化
  * ----------------------------- */
@@ -292,6 +312,5 @@ document.addEventListener('DOMContentLoaded', () => {
     setupSidebarNavigation();
 
     // 初始化命令列表
-    renderFunctionsTable();
-    renderPagination();
+    loadFunctions();
 });
