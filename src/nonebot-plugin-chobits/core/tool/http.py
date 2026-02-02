@@ -3,6 +3,7 @@ HTTP 接口相关处理
 """
 
 import json
+from urllib.parse import parse_qs
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -154,10 +155,6 @@ class ToolHTTPMixin:
         account = str(payload.get("account", "")).strip()
         password = str(payload.get("password", "")).strip()
 
-        print(payload)
-        print(account)
-        print(password)
-
         if not account or not password:
             return self._json({"status": "error", "message": "账号或密码不能为空"}, status=400)
 
@@ -198,6 +195,16 @@ class ToolHTTPMixin:
             except Exception:
                 pass
 
+        form_attr = getattr(request, "form", None)
+        if callable(form_attr):
+            try:
+                form_data = await form_attr()
+                form_payload = self._normalize_form_data(form_data)
+                if form_payload:
+                    return form_payload
+            except Exception:
+                pass
+
         body = None
         body_attr = getattr(request, "body", None)
         if callable(body_attr):
@@ -215,7 +222,39 @@ class ToolHTTPMixin:
         try:
             return json.loads(body)
         except json.JSONDecodeError:
+            payload = self._parse_urlencoded(body)
+            return payload
+
+    def _normalize_form_data(self, form_data: object) -> dict:
+        if form_data is None:
             return {}
+        items = getattr(form_data, "items", None)
+        if not callable(items):
+            return {}
+        normalized: dict[str, object] = {}
+        for key, value in items():
+            if isinstance(value, (list, tuple)):
+                normalized[str(key)] = value[0] if value else ""
+            else:
+                normalized[str(key)] = value
+        if normalized:
+            return normalized
+        getlist = getattr(form_data, "getlist", None)
+        if callable(getlist):
+            keys = getattr(form_data, "keys", None)
+            if callable(keys):
+                for key in keys():
+                    values = getlist(key)
+                    normalized[str(key)] = values[0] if values else ""
+        return normalized
+
+    def _parse_urlencoded(self, body: str) -> dict:
+        if not body:
+            return {}
+        parsed = parse_qs(body, keep_blank_values=True)
+        if not parsed:
+            return {}
+        return {key: value[0] if value else "" for key, value in parsed.items()}
 
     def _resolve_template_file(self, mode: str, name: str) -> Path | None:
         templates_dir = Path(__file__).parent / "templates"
