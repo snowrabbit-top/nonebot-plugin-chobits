@@ -167,9 +167,6 @@ cython_debug/
 *.sqlite
 *.sqlite3
 
-# Log files
-*.log
-
 # Temporary files
 *.tmp
 *.temp
@@ -197,18 +194,17 @@ yarn-error.log*
 # Compiled binary files
 *.exe
 *.dll
-*.so
 *.dylib
 
 # Coverage reports
 coverage/
-htmlcov/
 
 # Test results
-.pytest_cache/
 pytest_cache/
-.tox/
 
 # Local configuration files
 config.local.py
 settings.local.py
+
+# setting database
+src/nonebot-plugin-chobits/database/database.db

@@ -117,6 +117,24 @@ class Settings:
                 "created_time": formatted_time,
                 "updated_time": formatted_time,
                 "deleted_time": None
+            },
+            {
+                "key": "admin-user",
+                "value": "admin",
+                "description": "管理界面账号",
+                "status": "normal",
+                "created_time": formatted_time,
+                "updated_time": formatted_time,
+                "deleted_time": None
+            },
+            {
+                "key": "admin-password",
+                "value": "123456",
+                "description": "管理界面密码",
+                "status": "normal",
+                "created_time": formatted_time,
+                "updated_time": formatted_time,
+                "deleted_time": None
             }
         ]
 
@@ -349,6 +367,9 @@ class Settings:
                         "redis-port: redis 端口号\r\n"
                         "redis-password: redis 密码（可为空）\r\n"
                         "redis-database: redis 数据库编号\r\n\r\n"
+                        "=== 管理界面 配置 ===\r\n"
+                        "admin-user: 管理界面账号\r\n"
+                        "admin-password: 管理界面密码\r\n"
                         "请检查并修改配置信息，将用户名和密码改为真实配置"
                     )
 
@@ -394,6 +415,9 @@ class Settings:
                 "redis-port: redis 端口号\r\n"
                 "redis-password: redis 密码（可为空）\r\n"
                 "redis-database: redis 数据库编号\r\n\r\n"
+                "=== 管理界面 配置 ===\r\n"
+                "admin-user: 管理界面账号\r\n"
+                "admin-password: 管理界面密码\r\n"
                 "请检查并修改配置信息，将用户名和密码改为真实配置"
             )
 
@@ -410,6 +434,8 @@ redis-host
 redis-port
 redis-password
 redis-database
+admin-user
+admin-password
 输入"完成"结束修改""")
         async def got_location(info: str = ArgPlainText(), state: T_State = None):
             """
@@ -451,6 +477,8 @@ redis-host
 redis-port
 redis-password
 redis-database
+admin-user
+admin-password
 输入"完成"结束修改""")
 
         @view_system_info.handle()
