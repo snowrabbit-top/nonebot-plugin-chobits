@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <title>Chobits 管理工具 - 用户管理</title>
+        <link rel="stylesheet" href="css/common.css"/>
+        <link rel="stylesheet" href="css/users.css"/>
+    </head>
+    <body data-page="users">
+        <div class="particles" id="particles"></div>
+        <div class="main-container">
+            <!-- 侧边栏 -->
+            <div class="sidebar">
+                <div class="logo">
+                    <h3>Chobits 管理工具</h3>
+                </div>
+                <ul class="nav-menu" id="navMenu"></ul>
+            </div>
+            <!-- 主内容区域 -->
+            <div class="main-content">
+                <!-- 标题栏和面包屑 -->
+                <div class="header">
+                    <div class="header-title">用户管理</div>
+                    <div class="breadcrumb">
+                        <span>用户管理</span>
+                        <span>/</span>
+                        <span>用户列表</span>
+                    </div>
+                </div>
+
+                <!-- 内容 -->
+                <div class="content">
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <h3>用户列表</h3>
+                                <div class="card-subtitle">共 <span id="totalCount">0</span> 个用户</div>
+                            </div>
+                            <div class="card-tools">
+                                <button class="action-btn btn-normal" onclick="addUser()">+ 添加用户</button>
+                            </div>
+                        </div>
+
+                        <!-- 搜索和筛选 -->
+                        <div class="search-bar">
+                            <input type="text" class="search-input" id="searchInput" placeholder="搜索QQ号或ID..." oninput="filterUsers()">
+                            <select class="filter-select" id="statusFilter" onchange="filterUsers()">
+                                <option value="">所有状态</option>
+                                <option value="normal">正常</option>
+                                <option value="ban">已封禁</option>
+                            </select>
+                        </div>
+
+                        <!-- 用户表格 -->
+                        <div class="table-container">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>头像</th>
+                                        <th>QQ号</th>
+                                        <th>注册时间</th>
+                                        <th>状态</th>
+                                        <th>创建时间</th>
+                                        <th>更新时间</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="usersTableBody">
+                                    <!-- 用户数据将通过JavaScript动态填充 -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- 分页 -->
+                        <div class="pagination" id="pagination">
+                            <!-- 分页按钮将通过JavaScript动态生成 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="js/menu.js"></script>
+        <script src="js/common.js"></script>
+        <script src="js/users.js"></script>
+    </body>
+</html>

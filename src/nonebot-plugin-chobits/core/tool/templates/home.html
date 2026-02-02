@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <title>Chobits 管理工具 - 首页</title>
+        <link rel="stylesheet" href="css/common.css"/>
+        <link rel="stylesheet" href="css/home.css"/>
+    </head>
+    <body data-page="home">
+        <div class="particles" id="particles"></div>
+
+        <div class="main-container">
+            <!-- 侧边栏 -->
+            <div class="sidebar">
+                <div class="logo">
+                    <h3>Chobits 管理工具</h3>
+                </div>
+                <ul class="nav-menu" id="navMenu"></ul>
+            </div>
+
+            <!-- 主内容区域 -->
+            <div class="main-content">
+                <!-- 标题栏和面包屑 -->
+                <div class="header">
+                    <div class="header-title">系统概览</div>
+                    <div class="breadcrumb">
+                        <span>首页</span>
+                        <span>/</span>
+                        <span>系统概览</span>
+                    </div>
+                </div>
+
+                <!-- 内容区域 -->
+                <div class="content">
+                    <!-- 系统状态概览 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>系统状态</h3>
+                            <a href="#">刷新</a>
+                        </div>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-status status-online"></div>
+                                <div class="stat-label">服务器状态</div>
+                                <div class="stat-value">在线</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">CPU使用率</div>
+                                <div class="stat-value">23.5%</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 23.5%"></div>
+                                </div>
+                                <div class="progress-text">正常</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">内存使用率</div>
+                                <div class="stat-value">45.2%</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 45.2%"></div>
+                                </div>
+                                <div class="progress-text">8.2GB/18GB</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-label">磁盘使用率</div>
+                                <div class="stat-value">67.8%</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: 67.8%"></div>
+                                </div>
+                                <div class="progress-text">135GB/200GB</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 关键指标统计 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>关键指标</h3>
+                            <a href="#">查看更多</a>
+                        </div>
+                        <div class="metrics-grid">
+                            <div class="metric-item">
+                                <div class="metric-value">1,247</div>
+                                <div class="metric-label">总用户数</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-value">8</div>
+                                <div class="metric-label">角色数量</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-value">156</div>
+                                <div class="metric-label">命令总数</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-value">24</div>
+                                <div class="metric-label">今日活跃</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-value">12</div>
+                                <div class="metric-label">待处理告警</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-value">3</div>
+                                <div class="metric-label">待办任务</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 最近活动 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>最近活动</h3>
+                            <a href="#">查看全部</a>
+                        </div>
+                        <ul class="activity-list">
+                            <li class="activity-item">
+                                <div class="activity-icon">👤</div>
+                                <div class="activity-content">
+                                    <div class="activity-text">用户 admin 从 192.168.1.100 登录系统</div>
+                                    <div class="activity-time">2分钟前</div>
+                                </div>
+                            </li>
+                            <li class="activity-item">
+                                <div class="activity-icon">🎭</div>
+                                <div class="activity-content">
+                                    <div class="activity-text">管理员修改了 "超级管理员" 角色权限</div>
+                                    <div class="activity-time">15分钟前</div>
+                                </div>
+                            </li>
+                            <li class="activity-item">
+                                <div class="activity-icon">💬</div>
+                                <div class="activity-content">
+                                    <div class="activity-text">新增命令 "/system/restart" 到命令库</div>
+                                    <div class="activity-time">1小时前</div>
+                                </div>
+                            </li>
+                            <li class="activity-item">
+                                <div class="activity-icon">⚠️</div>
+                                <div class="activity-content">
+                                    <div class="activity-text">磁盘使用率超过 65%，建议清理空间</div>
+                                    <div class="activity-time">2小时前</div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- 快捷操作 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>快捷操作</h3>
+                        </div>
+                        <div class="quick-actions">
+                            <button class="quick-btn">🔄 重启服务</button>
+                            <button class="quick-btn">🧹 清理缓存</button>
+                            <button class="quick-btn">📤 导出数据</button>
+                            <button class="quick-btn">⚙️ 系统设置</button>
+                            <button class="quick-btn">🔍 健康检查</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="js/menu.js"></script>
+        <script src="js/common.js"></script>
+        <script src="js/home.js"></script>
+    </body>
+</html>

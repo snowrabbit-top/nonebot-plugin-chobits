@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <title>Chobits 管理工具 - 系统监控</title>
+        <link rel="stylesheet" href="css/common.css"/>
+        <link rel="stylesheet" href="css/monitor.css"/>
+    </head>
+    <body data-page="monitor">
+        <div class="particles" id="particles"></div>
+        <div class="main-container">
+            <!-- 侧边栏 -->
+            <div class="sidebar">
+                <div class="logo">
+                    <h3>Chobits 管理工具</h3>
+                </div>
+                <ul class="nav-menu" id="navMenu"></ul>
+            </div>
+            <!-- 主内容区域 -->
+            <div class="main-content">
+                <!-- 标题栏和面包屑（模仿首页布局） -->
+                <div class="header">
+                    <div class="header-title">系统监控</div>
+                    <div class="breadcrumb">
+                        <span>系统监控</span>
+                        <span>/</span>
+                        <span>实时监控</span>
+                    </div>
+                </div>
+
+                <!-- 内容 -->
+                <div class="content">
+                    <!-- 实时概览 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <h3>实时概览</h3>
+                                <div class="card-subtitle">主机：<span class="muted" id="hostName">chobits-node-01</span> · 最后更新：<span class="muted" id="lastUpdated">--</span></div>
+                            </div>
+                            <div class="card-tools">
+                                <span class="badge ok" id="overallBadge">OK</span>
+                            </div>
+                        </div>
+                        <div class="grid-3">
+                            <div class="stat-card">
+                                <div class="stat-top">
+                                    <div class="stat-name">CPU 使用率</div>
+                                    <div class="badge" id="cpuBadge">NORMAL</div>
+                                </div>
+                                <div class="stat-value" id="cpuValue">--%</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="cpuBar" style="width:0%"></div>
+                                </div>
+                                <div class="stat-foot">
+                                    <span>1m 平均：<span id="cpuAvg" class="muted">--%</span></span>
+                                    <span>核心：<span id="cpuCores" class="muted">--</span></span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-top">
+                                    <div class="stat-name">内存 使用率</div>
+                                    <div class="badge" id="memBadge">NORMAL</div>
+                                </div>
+                                <div class="stat-value" id="memValue">--%</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="memBar" style="width:0%"></div>
+                                </div>
+                                <div class="stat-foot">
+                                    <span>已用：<span id="memUsed" class="muted">--</span></span>
+                                    <span>总计：<span id="memTotal" class="muted">--</span></span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-top">
+                                    <div class="stat-name">磁盘 使用率</div>
+                                    <div class="badge" id="diskBadge">NORMAL</div>
+                                </div>
+                                <div class="stat-value" id="diskValue">--%</div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="diskBar" style="width:0%"></div>
+                                </div>
+                                <div class="stat-foot">
+                                    <span>已用：<span id="diskUsed" class="muted">--</span></span>
+                                    <span>总计：<span id="diskTotal" class="muted">--</span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 性能图表 -->
+                    <div class="grid-2">
+                        <div class="card">
+                            <div class="card-header">
+                                <div>
+                                    <h3>CPU / Load 趋势</h3>
+                                    <div class="card-subtitle">近 60 秒采样（模拟）</div>
+                                </div>
+                                <div class="card-tools">
+                                    <span class="badge" id="loadLabel">load: --</span>
+                                </div>
+                            </div>
+                            <div class="mini-chart" id="cpuChart"></div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <div>
+                                    <h3>网络吞吐（In / Out）</h3>
+                                    <div class="card-subtitle">近 60 秒采样（模拟）</div>
+                                </div>
+                                <div class="card-tools">
+                                    <span class="badge" id="netLabel">in: -- · out: --</span>
+                                </div>
+                            </div>
+                            <div class="mini-chart" id="netChart"></div>
+                        </div>
+                    </div>
+                    <!-- 进程 + 服务 -->
+                    <div class="grid-2">
+                        <div class="card">
+                            <div class="card-header">
+                                <div>
+                                    <h3>Top 进程</h3>
+                                    <div class="card-subtitle">按 CPU / 内存占用排序（示例数据）</div>
+                                </div>
+                            </div>
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>PID</th>
+                                        <th>进程</th>
+                                        <th>CPU</th>
+                                        <th>MEM</th>
+                                        <th class="muted">用户</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="procTbody"></tbody>
+                            </table>
+                        </div>
+                        <div class="card">
+                            <div class="card-header">
+                                <div>
+                                    <h3>服务状态</h3>
+                                    <div class="card-subtitle">关键服务存活与健康检查</div>
+                                </div>
+                            </div>
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>服务</th>
+                                        <th>状态</th>
+                                        <th>延迟</th>
+                                        <th class="muted">备注</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="svcTbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- 告警 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <div>
+                                <h3>告警与事件</h3>
+                                <div class="card-subtitle">支持接入告警平台（Prometheus / Alertmanager / Sentry 等）</div>
+                            </div>
+                        </div>
+                        <div class="alerts" id="alerts"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script src="js/menu.js"></script>
+        <script src="js/common.js"></script>
+        <script src="js/monitor.js"></script>
+    </body>
+</html>

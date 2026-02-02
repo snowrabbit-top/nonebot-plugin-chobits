@@ -1,0 +1,135 @@
+/* 头像样式 */
+.avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(100, 180, 220, 0.3);
+}
+
+.default-avatar {
+    background: linear-gradient(135deg, #008cff, #005ca0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+/* 状态标签 */
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.status-normal {
+    background: rgba(0, 204, 106, 0.2);
+    color: #00cc6a;
+    border: 1px solid rgba(0, 204, 106, 0.3);
+}
+
+.status-ban {
+    background: rgba(204, 46, 46, 0.2);
+    color: #cc2e2e;
+    border: 1px solid rgba(204, 46, 46, 0.3);
+}
+
+/* 操作按钮 */
+.action-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-right: 6px;
+}
+
+.btn-normal {
+    background: rgba(0, 204, 106, 0.2);
+    color: #00cc6a;
+    border: 1px solid rgba(0, 204, 106, 0.3);
+}
+
+.btn-ban {
+    background: rgba(204, 46, 46, 0.2);
+    color: #cc2e2e;
+    border: 1px solid rgba(204, 46, 46, 0.3);
+}
+
+.btn-delete {
+    background: rgba(255, 170, 0, 0.2);
+    color: #ffaa00;
+    border: 1px solid rgba(255, 170, 0, 0.3);
+}
+
+.action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 140, 180, 0.3);
+}
+
+/* 搜索和筛选 */
+.search-bar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.search-input {
+    flex: 1;
+    min-width: 200px;
+    padding: 10px 15px;
+    background: rgba(20, 35, 55, 0.7);
+    border: 1px solid rgba(100, 180, 220, 0.2);
+    border-radius: 8px;
+    color: #e0f0ff;
+    font-size: 14px;
+    outline: none;
+}
+
+.search-input::placeholder {
+    color: rgba(180, 220, 255, 0.5);
+}
+
+.search-input:focus {
+    border-color: rgba(0, 140, 180, 0.4);
+    box-shadow: 0 0 10px rgba(0, 140, 180, 0.2);
+}
+
+.filter-select {
+    padding: 10px 15px;
+    background: rgba(20, 35, 55, 0.7);
+    border: 1px solid rgba(100, 180, 220, 0.2);
+    border-radius: 8px;
+    color: #e0f0ff;
+    font-size: 14px;
+    outline: none;
+    min-width: 120px;
+}
+
+.filter-select option {
+    background: rgba(15, 25, 40, 0.8);
+}
+
+@media (max-width: 768px) {
+    .search-bar {
+        flex-direction: column;
+    }
+
+    .search-input {
+        min-width: auto;
+    }
+}
+
+@media (max-width: 480px) {
+    .avatar {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+    }
+}
