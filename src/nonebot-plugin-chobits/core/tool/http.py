@@ -3,6 +3,9 @@ HTTP 接口相关处理
 """
 
 import json
+import inspect
+import os
+import shutil
 from urllib.parse import parse_qs
 from collections.abc import Sequence
 from pathlib import Path
@@ -25,6 +28,7 @@ class ToolHTTPMixin:
         ("GET", "/chobits/command", "chobits_http_command"),
         ("GET", "/chobits/page", "chobits_http_page"),
         ("GET", "/chobits/static", "chobits_http_static"),
+        ("GET", "/chobits/home", "chobits_http_home"),
         ("POST", "/chobits/login", "chobits_http_login"),
     )
 
@@ -185,20 +189,55 @@ class ToolHTTPMixin:
 
         return self._json({"status": "error", "message": "账号或密码错误"}, status=400)
 
+    async def http_home(self, _: Request) -> Response:
+        """
+        首页数据接口
+
+        路由：
+        - GET /chobits/home
+
+        返回：
+        - Response:
+          - 200: {"status": "success", "data": {...}}
+        """
+        cpu_usage = self._get_cpu_usage()
+        memory_usage = self._get_memory_usage()
+        disk_usage = self._get_disk_usage()
+        metrics = self._get_home_metrics()
+        activities = self._get_home_activities()
+
+        payload = {
+            "status": "success",
+            "data": {
+                "system_status": {
+                    "server": "online",
+                    "cpu_usage": cpu_usage,
+                    "memory": memory_usage,
+                    "disk": disk_usage,
+                },
+                "metrics": metrics,
+                "activities": activities,
+            },
+        }
+        return self._json(payload)
+
     async def _read_json_body(self, request: Request) -> dict:
         """
         尝试从请求中读取 JSON body
         """
-        if hasattr(request, "json"):
+        json_attr = getattr(request, "json", None)
+        if json_attr is not None:
             try:
-                return await request.json()
+                json_payload = await self._maybe_await(json_attr)
+                if isinstance(json_payload, dict):
+                    return json_payload
             except Exception:
                 pass
 
         form_attr = getattr(request, "form", None)
         if callable(form_attr):
             try:
-                form_data = await form_attr()
+                form_data = await self._maybe_await(form_attr)
                 form_payload = self._normalize_form_data(form_data)
                 if form_payload:
                     return form_payload
@@ -207,9 +246,9 @@ class ToolHTTPMixin:
 
         body = None
         body_attr = getattr(request, "body", None)
-        if callable(body_attr):
+        if body_attr is not None and callable(body_attr):
             try:
-                body = await body_attr()
+                body = await self._maybe_await(body_attr)
             except Exception:
                 body = None
         elif isinstance(body_attr, (bytes, bytearray, str)):
@@ -224,6 +263,98 @@ class ToolHTTPMixin:
         except json.JSONDecodeError:
             payload = self._parse_urlencoded(body)
             return payload
+
+    async def _maybe_await(self, value: object) -> object:
+        if callable(value):
+            value = value()
+        if inspect.isawaitable(value):
+            return await value
+        return value
+
+    def _get_cpu_usage(self) -> float | None:
+        try:
+            load_1, _, _ = os.getloadavg()
+            cpu_count = os.cpu_count() or 1
+            usage = min(load_1 / cpu_count * 100, 100.0)
+            return round(usage, 1)
+        except Exception:
+            return None
+
+    def _get_memory_usage(self) -> dict | None:
+        meminfo = Path("/proc/meminfo")
+        if not meminfo.exists():
+            return None
+        try:
+            info = {}
+            for line in meminfo.read_text(encoding="utf-8").splitlines():
+                parts = line.split(":")
+                if len(parts) != 2:
+                    continue
+                key = parts[0].strip()
+                value = parts[1].strip().split()[0]
+                if value.isdigit():
+                    info[key] = int(value)
+            total = info.get("MemTotal")
+            available = info.get("MemAvailable", info.get("MemFree"))
+            if not total or available is None:
+                return None
+            used = total - available
+            percent = round(used / total * 100, 1)
+            return {
+                "used_gb": round(used / 1024 / 1024, 1),
+                "total_gb": round(total / 1024 / 1024, 1),
+                "percent": percent,
+            }
+        except Exception:
+            return None
+
+    def _get_disk_usage(self) -> dict | None:
+        try:
+            total, used, _ = shutil.disk_usage("/")
+            if total == 0:
+                return None
+            percent = round(used / total * 100, 1)
+            return {
+                "used_gb": round(used / 1024 / 1024 / 1024, 1),
+                "total_gb": round(total / 1024 / 1024 / 1024, 1),
+                "percent": percent,
+            }
+        except Exception:
+            return None
+
+    def _get_home_metrics(self) -> dict:
+        return {
+            "users": 0,
+            "roles": 0,
+            "commands": 0,
+            "active_today": 0,
+            "alerts": 0,
+            "tasks": 0,
+        }
+
+    def _get_home_activities(self) -> list[dict]:
+        return [
+            {
+                "icon": "👤",
+                "text": "用户 admin 从 192.168.1.100 登录系统",
+                "time": "2分钟前",
+            },
+            {
+                "icon": "🎭",
+                "text": "管理员修改了 \"超级管理员\" 角色权限",
+                "time": "15分钟前",
+            },
+            {
+                "icon": "💬",
+                "text": "新增命令 \"/system/restart\" 到命令库",
+                "time": "1小时前",
+            },
+            {
+                "icon": "⚠️",
+                "text": "磁盘使用率超过 65%，建议清理空间",
+                "time": "2小时前",
+            },
+        ]
 
     def _normalize_form_data(self, form_data: object) -> dict:
         if form_data is None:
