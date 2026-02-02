@@ -41,6 +41,9 @@ class ToolServerMixin:
             "chobits_http_ping": self.http_ping,
             "chobits_http_status": self.http_status,
             "chobits_http_command": self.http_command,
+            "chobits_http_page": self.http_page,
+            "chobits_http_static": self.http_static,
+            "chobits_http_login": self.http_login,
         }
         for method, path, name in self.HTTP_ROUTES:
             handler = name_to_handler.get(name)
