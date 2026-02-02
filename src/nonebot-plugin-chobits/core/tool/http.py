@@ -154,6 +154,10 @@ class ToolHTTPMixin:
         account = str(payload.get("account", "")).strip()
         password = str(payload.get("password", "")).strip()
 
+        print(payload)
+        print(account)
+        print(password)
+
         if not account or not password:
             return self._json({"status": "error", "message": "账号或密码不能为空"}, status=400)
 
